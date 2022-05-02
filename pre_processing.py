@@ -18,7 +18,7 @@ import numpy as np
 import csv
 from matplotlib.patches import Rectangle
 
-dataset = 'C:/users/Svartox/Documents/datasets/Mecanosensors/'
+dataset = '' #path of the data (root folder contains our data)
 
 def getListOfFiles(dirName):
     # create a list of file and sub directories 

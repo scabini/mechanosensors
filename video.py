@@ -12,7 +12,7 @@ from machine_learning import getListOfFiles,get_feature,get_features
 import numpy as np
 import matplotlib.pyplot as plt
 
-dataset = 'C:/users/Svartox/Documents/datasets/Mecanosensors/'
+dataset = '' #path of the data (root folder contains our data)
 
 images_path = dataset + 'cropped_images/'
 masks_path = dataset + 'new_masks/'
@@ -31,7 +31,7 @@ X, y = get_features(images, masks, colorspace='HSV', disc_factor=1.0)
 
 regressor = linear_model.ElasticNetCV(cv=5).fit(X, y)
 
-sample = 'S4'
+sample = 'S1'
 
 video = cv.VideoCapture(dataset+ 'videos/' + sample + '.MOV')
 success,frame = video.read()
@@ -65,13 +65,13 @@ while success:
     cv.putText(frame, ' predicted: ' +  str(np.round(reg_pred[0], decimals=2)), (250, 850), cv.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 7)
     cv.putText(frame, 'equipment: ' + str(equipment_curve[j]), (250, 1000), cv.FONT_HERSHEY_SIMPLEX, 4 , (255, 0, 0), 7) 
     
-    print(reg_pred, equipment_curve[j])
+    print("g.truth=", equipment_curve[j], '--- ElasticNet=', reg_pred)
     
     if i > starting_frame and (i-starting_frame)%3==0  and j < 191:        
         j = min(j +1, 190)
 
 
-    out.write(frame)    
+    # out.write(frame)    
     i=i+1
     success,frame = video.read()
 
@@ -84,15 +84,15 @@ out.release()
 cv.destroyAllWindows()
 
 
-fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(4, 2.7))
+fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(3.4, 2.4))
 
 ax1.plot([i/30 for i in range(len(gtruth))], gtruth, color='blue', label='equipment')
 ax1.plot([i/30 for i in range(len(gtruth))], preds, color='red', linestyle='--', label='prediction')
 
-plt.title(sample)
-plt.xlabel('video time (s)', fontsize=13)
-plt.ylabel('tension', fontsize=13)
-plt.legend()
+# plt.title(sample)
+plt.xlabel('video time (seconds)', fontsize=13)
+plt.ylabel('tension $\epsilon$ ($\%$)', fontsize=13)
+plt.legend(loc='lower center', bbox_to_anchor=(0.5, 0., 0.11, 0.5))
 plt.tight_layout()
 plt.savefig('plots/' + sample +'_videoValidation.jpg', dpi=350) 
 

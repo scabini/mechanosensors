@@ -23,7 +23,7 @@ from matplotlib.patches import Patch
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 
-dataset = 'C:/users/Svartox/Documents/datasets/Mecanosensors/'
+dataset = '' #path of the data (root folder contains our data)
 
 images_path = dataset + 'cropped_images/'
 masks_path = dataset + 'new_masks/'
@@ -142,87 +142,91 @@ def get_manualFolds(images):
         replica = images[i].split('/')[-1]
         replica = int(replica[4])
         
-        # foldindex.append(sample)
-        foldindex.append(replica)
+        foldindex.append(sample) #sensor-wise validation
+        # foldindex.append(replica)
         # foldindex.append(classe)
         
     return foldindex
     
     
     
-# images = getListOfFiles(images_path) 
-# masks  = getListOfFiles(masks_path) 
+images = getListOfFiles(images_path) 
+masks  = getListOfFiles(masks_path) 
 
-# foldindex = get_manualFolds(images)
+foldindex = get_manualFolds(images)
 
-# repetitions=1   
-# colorspace = 'HSV'
+repetitions=1   
+colorspace = 'HSV'
 
-# X, y = get_features(images, masks, colorspace=colorspace, disc_factor=1.0)
+X, y = get_features(images, masks, colorspace=colorspace, disc_factor=1.0)
 
-# # le = preprocessing.LabelEncoder()
-# # le.fit(y)
-# # y=le.transform(y)
+# le = preprocessing.LabelEncoder()
+# le.fit(y)
+# y=le.transform(y)
 
-# accs=[]
-# regs=[]
-# reg_preds=[]
-# fig1, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(3.65,3.65)) 
-# # ax1 = ax1.flat
-# for it in range(repetitions):
-#     # crossval = LeaveOneOut()
-#     # crossval = StratifiedKFold(n_splits=5, shuffle=True, random_state=it*666)
-#     # crossval.get_n_splits(X)
-#     # for train_index, test_index in crossval.split(X, foldindex):
-#     #     X_train, X_test = X[train_index], X[test_index]
-#     #     y_train, y_test = y[train_index], y[test_index]
-#     for fold in np.unique(foldindex):        
-#         X_train, X_test = X[foldindex!=fold], X[foldindex==fold]
-#         y_train, y_test = y[foldindex!=fold], y[foldindex==fold]
+accs=[]
+regs=[]
+reg_preds=[]
+fig1, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(3,3)) 
+# ax1 = ax1.flat
+for it in range(repetitions):
+    # crossval = LeaveOneOut()
+    # crossval = StratifiedKFold(n_splits=5, shuffle=True, random_state=it*666)
+    # crossval.get_n_splits(X)
+    # for train_index, test_index in crossval.split(X, foldindex):
+    #     X_train, X_test = X[train_index], X[test_index]
+    #     y_train, y_test = y[train_index], y[test_index]
+    for fold in np.unique(foldindex):        
+        X_train, X_test = X[foldindex!=fold], X[foldindex==fold]
+        y_train, y_test = y[foldindex!=fold], y[foldindex==fold]
         
-#         classifier = KNeighborsClassifier(n_neighbors=1)
-#         # classifier = svm.SVC(kernel='rbf', C=3)
-#         # classifier = LinearDiscriminantAnalysis(solver='svd')
+        ##### select between different classification models
+        classifier = KNeighborsClassifier(n_neighbors=1)
+        # classifier = svm.SVC(kernel='rbf', C=3)
+        # classifier = LinearDiscriminantAnalysis(solver='svd')
     
                
-#         classifier.fit(X_train, y_train)
+        classifier.fit(X_train, y_train)
         
-#         preds=classifier.predict(X_test)
-#         acc=accuracy_score(y_test, preds)
-#         accs.append(acc)
+        preds=classifier.predict(X_test)
+        acc=accuracy_score(y_test, preds)
+        accs.append(acc)
        
         
-#         # regressor = linear_model.LinearRegression().fit(X_train, y_train) 
+        ##### select between different regression models
+        # regressor = linear_model.LinearRegression().fit(X_train, y_train) 
         
-#         # regressor = linear_model.SGDRegressor(verbose=False).fit(X_train, y_train) 
-#         # regressor = linear_model.RidgeCV(cv=5).fit(X_train, y_train)
-#         regressor = linear_model.ElasticNetCV(cv=5).fit(X_train, y_train)
+        # regressor = linear_model.SGDRegressor(verbose=False).fit(X_train, y_train) 
+        # regressor = linear_model.RidgeCV(cv=5).fit(X_train, y_train)
+        regressor = linear_model.ElasticNetCV(cv=5).fit(X_train, y_train)
         
-#         reg_pred = regressor.predict(X_test)
-#         # reg_preds.append(reg_pred)
+        reg_pred = regressor.predict(X_test)
+        # reg_preds.append(reg_pred)
             
-#         ax1.scatter(y_test, reg_pred, color='black')
+        ax1.scatter(y_test, reg_pred, color='black', s=10)
             
-#         reg= regressor.score(X_test, y_test)
+        reg= regressor.score(X_test, y_test)
         
-#         regs.append(reg)
-#         # print(acc)
+        regs.append(reg)
+        # print(acc)
 
-# acc=np.mean(accs)
-# std= np.std(accs)
-# print('classification accuracy='+ str(np.round(acc, decimals=2)) + ' ($\pm$' + str(np.round(std, decimals=2)) + ')')  
+acc=np.mean(accs)
+std= np.std(accs)
+print('classification accuracy='+ str(np.round(acc, decimals=2)) + ' ($\pm$' + str(np.round(std, decimals=2)) + ')')  
 
       
-# ax1.plot([x for x in np.unique(y)],[x for x in np.unique(y)])    
-# acc=np.mean(regs)
-# std= np.std(regs)
-# # ax1.set_title('least squares')
-# print('ElasticNet, $R^2$='+ str(np.round(acc, decimals=2)) + ' ($\pm$' + str(np.round(std, decimals=2)) + ')')
-# ax1.set_title('ElasticNet, $R^2=$'+ str(np.round(acc, decimals=2)) + ' ($\pm$' + str(np.round(std, decimals=2)) + ')')  
-# ax1.set_xlabel('ground truth', fontsize=13)
-# ax1.set_ylabel('prediction', fontsize=13)
-# fig1.tight_layout()
-# fig1.savefig('plots/' + colorspace + "_regression.jpg", dpi=350)   
+ax1.plot([x for x in np.unique(y)],[x for x in np.unique(y)])   
+ax1.set_xticks([x for x in np.unique(y)]) 
+ax1.set_yticks([x for x in np.unique(y)]) 
+acc=np.mean(regs)
+std= np.std(regs)
+# ax1.set_title('least squares')
+print('ElasticNet, $R^2$='+ str(np.round(acc, decimals=2)) + ' ($\pm$' + str(np.round(std, decimals=2)) + ')')
+ax1.set_title('ElasticNet, $R^2=$'+ str(np.round(acc, decimals=2)) + ' ($\pm$' + str(np.round(std, decimals=2)) + ')')  
+ax1.set_xlabel('ground truth $\epsilon$ ($\%$)', fontsize=13)
+ax1.set_ylabel('predicted $\epsilon$ ($\%$)', fontsize=13)
+fig1.tight_layout()
+fig1.savefig('plots/' + colorspace + "_regression.jpg", dpi=350)   
 
 
 # ############ VIZUALIZATIONS ###############
@@ -258,7 +262,7 @@ def get_manualFolds(images):
 #         return img, hist_R/sum(hist_R), hist_G/sum(hist_G), hist_B/sum(hist_B)
 
 
-# fig2, ax1 = plt.subplots(nrows=2, ncols=2, figsize=(7, 4.6)) 
+# fig2, ax1 = plt.subplots(nrows=1, ncols=2, figsize=(3, 3)) 
 # ax1 = ax1.flat
 
 # # a=0
@@ -269,26 +273,27 @@ def get_manualFolds(images):
 
 # plt.subplot(2, 1, 1)
 # print(images[a])
-# plt.title(colorspace, fontsize=14)
-# # ax1[0].set_title(images[a].split('/')[-1])
-# ra=plt.plot(hist_R, color='red')
-# rg=plt.plot(hist_G, color='green')
-# rb=plt.plot(hist_B, color='blue')
+# # plt.title(colorspace, fontsize=14)
+# # ax1[0].set_title(images[a].split('/')[-1])]
+# # x_axis = np.argwhere(hist_R!=0)
+# ra=plt.plot(np.argwhere(hist_R!=0),hist_R[hist_R!=0], color='red', label='hue')
+# rg=plt.plot(np.argwhere(hist_G!=0),hist_G[hist_G!=0], color='green', label='saturation')
+# rb=plt.plot(np.argwhere(hist_B!=0),hist_B[hist_B!=0], color='blue', label='value')
 
-# # b=7
-# # b= 6
-# # b= 11
-# b=22
+# b=7
+# # # b= 6
+# # # b= 11
+# # b=22
 
 # print(images[b])
 # imgB, hist_R, hist_G, hist_B= get_hists(images[b:b+1], masks[b:b+1], colorspace=colorspace)
-# # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+# # # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
 
-# plt.plot(hist_R, color='red', linestyle='--')
-# plt.plot(hist_G, color='green', linestyle='--')
-# plt.plot(hist_B, color='blue', linestyle='--')
-# plt.xlabel('intensity', fontsize=13)
-# plt.ylabel('frequency (%)', fontsize=13)
+# # plt.plot(hist_R, color='red', linestyle='--')
+# # plt.plot(hist_G, color='green', linestyle='--')
+# # plt.plot(hist_B, color='blue', linestyle='--')
+# # plt.xlabel('intensity', fontsize=13)
+# # plt.ylabel('frequency (%)', fontsize=13)
 
 
 
@@ -296,32 +301,34 @@ def get_manualFolds(images):
 # pa2 = Patch(edgecolor='green', facecolor='white')
 # pa3 = Patch(edgecolor='blue', facecolor='white')
 # #
-# pb1 = Patch(edgecolor='red', linestyle='--', facecolor='white')
-# pb2 = Patch(edgecolor='green', linestyle='--', facecolor='white')
-# pb3 = Patch(edgecolor='blue', linestyle='--', facecolor='white')
+# # pb1 = Patch(edgecolor='red', linestyle='--', facecolor='white')
+# # pb2 = Patch(edgecolor='green', linestyle='--', facecolor='white')
+# # pb3 = Patch(edgecolor='blue', linestyle='--', facecolor='white')
 
-# plt.legend(handles=[pa1, pb1, pa2, pb2, pa3, pb3],
-#           labels=['', '', '', '', images[a].split('/')[-1], images[b].split('/')[-1]],
-#           ncol=3, handletextpad=0.5, handlelength=1.0, columnspacing=-0.5,
-#           fontsize=13)
+# # plt.legend(handles=[pa1, pb1, pa2, pb2, pa3, pb3],
+# #           labels=['', '', '', '', images[a].split('/')[-1], images[b].split('/')[-1]],
+# #           ncol=3, handletextpad=0.5, handlelength=1.0, columnspacing=-0.5,
+# #           fontsize=13)
 
+# plt.legend()
 # plt.tight_layout()
 
-# plt.subplot(2, 2, 3)
-# plt.title(images[a].split('/')[-1])
+# # plt.subplot(2, 2, 3)
+# # plt.title(images[a].split('/')[-1])
 # plt.xticks([]), plt.yticks([])
-# if colorspace == 'HSV':
-#     imgA = cv.cvtColor(imgA, cv.COLOR_HSV2RGB)
-# plt.imshow(imgA)
+# # if colorspace == 'HSV':
+# #     imgA = cv.cvtColor(imgA, cv.COLOR_HSV2RGB)
+# # plt.imshow(imgA)
 
-# plt.subplot(2, 2, 4)
-# plt.title(images[b].split('/')[-1])
-# plt.xticks([]), plt.yticks([])
-# if colorspace == 'HSV':
-#     imgB = cv.cvtColor(imgB, cv.COLOR_HSV2RGB)
-# plt.imshow(imgB)
-# plt.savefig('plots/' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
+# # plt.subplot(2, 2, 4)
+# # plt.title(images[b].split('/')[-1])
+# # plt.xticks([]), plt.yticks([])
+# # if colorspace == 'HSV':
+# #     imgB = cv.cvtColor(imgB, cv.COLOR_HSV2RGB)
+# # plt.imshow(imgB)
+# # plt.savefig('plots/' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
 
+# # plt.savefig('plots/FOR_PAPER' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
 
 
 
