@@ -1,4 +1,4 @@
-# mecanosensor
+# Mechanosensors with Machine Learning
  Code for the Image processing and Machine Learning techniques employed for mechanosensors recognition
 
 
