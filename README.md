@@ -1,6 +1,3 @@
-# Mechanosensors with Machine Learning
- 
-
 
 ## Data
 
