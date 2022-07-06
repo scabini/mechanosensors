@@ -4,7 +4,7 @@ Created on Tue Mar 29 20:15:28 2022
 
 @author: scabini
 """
-
+import pandas as pd
 import cv2 as cv
 from sklearn import linear_model
 from pre_processing import pre_process
@@ -12,7 +12,7 @@ from machine_learning import getListOfFiles,get_feature,get_features
 import numpy as np
 import matplotlib.pyplot as plt
 
-dataset = '' #path of the data (root folder contains our data)
+dataset = 'C:/Users/Svartox/Documents/datasets/Mecanosensors/' #path of the data (root folder contains our data)
 
 images_path = dataset + 'cropped_images/'
 masks_path = dataset + 'new_masks/'
@@ -60,10 +60,10 @@ while success:
     features = get_feature(img, mask, colorspace='HSV')
                            
     reg_pred = regressor.predict(features.reshape(-1, 690))
-    preds.append(reg_pred)
+    preds.append(reg_pred[0])
     gtruth.append(equipment_curve[j])
-    cv.putText(frame, ' predicted: ' +  str(np.round(reg_pred[0], decimals=2)), (250, 850), cv.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 7)
-    cv.putText(frame, 'equipment: ' + str(equipment_curve[j]), (250, 1000), cv.FONT_HERSHEY_SIMPLEX, 4 , (255, 0, 0), 7) 
+    # cv.putText(frame, ' predicted: ' +  str(np.round(reg_pred[0], decimals=2)), (250, 850), cv.FONT_HERSHEY_SIMPLEX, 4, (0, 0, 255), 7)
+    # cv.putText(frame, 'equipment: ' + str(equipment_curve[j]), (250, 1000), cv.FONT_HERSHEY_SIMPLEX, 4 , (255, 0, 0), 7) 
     
     print("g.truth=", equipment_curve[j], '--- ElasticNet=', reg_pred)
     
@@ -79,7 +79,7 @@ while success:
     
 video.release()
 
-out.release()
+# out.release()
 
 cv.destroyAllWindows()
 
@@ -89,6 +89,8 @@ fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(3.4, 2.4))
 ax1.plot([i/30 for i in range(len(gtruth))], gtruth, color='blue', label='equipment')
 ax1.plot([i/30 for i in range(len(gtruth))], preds, color='red', linestyle='--', label='prediction')
 
+
+
 # plt.title(sample)
 plt.xlabel('video time (seconds)', fontsize=13)
 plt.ylabel('tension $\epsilon$ ($\%$)', fontsize=13)
@@ -96,6 +98,12 @@ plt.legend(loc='lower center', bbox_to_anchor=(0.5, 0., 0.11, 0.5))
 plt.tight_layout()
 plt.savefig('plots/' + sample +'_videoValidation.jpg', dpi=350) 
 
+df = []
+df.append([i/30 for i in range(len(gtruth))])
+df.append(gtruth)
+df.append(preds)
+df = pd.DataFrame(df)
+df.to_excel('plots/' + sample +'_videoValidation.xlsx', index=False, header=False)
 
 
 

@@ -5,13 +5,14 @@ Created on Thu Mar 10 10:03:52 2022
 @author: scabini
 """
 
+
 import os
 # import scipy.io
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import cv2 as cv
 import numpy as np
-
+import pandas as pd
 from sklearn import linear_model
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
@@ -169,6 +170,7 @@ regs=[]
 reg_preds=[]
 fig1, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(3,3)) 
 # ax1 = ax1.flat
+df = []
 for it in range(repetitions):
     # crossval = LeaveOneOut()
     # crossval = StratifiedKFold(n_splits=5, shuffle=True, random_state=it*666)
@@ -204,7 +206,7 @@ for it in range(repetitions):
         # reg_preds.append(reg_pred)
             
         ax1.scatter(y_test, reg_pred, color='black', s=10)
-            
+        df.append([y_test, reg_pred])    
         reg= regressor.score(X_test, y_test)
         
         regs.append(reg)
@@ -226,109 +228,129 @@ ax1.set_title('ElasticNet, $R^2=$'+ str(np.round(acc, decimals=2)) + ' ($\pm$' +
 ax1.set_xlabel('ground truth $\epsilon$ ($\%$)', fontsize=13)
 ax1.set_ylabel('predicted $\epsilon$ ($\%$)', fontsize=13)
 fig1.tight_layout()
-fig1.savefig('plots/' + colorspace + "_regression.jpg", dpi=350)   
+# fig1.savefig('plots/' + colorspace + "_regression.jpg", dpi=350)   
 
 
-# ############ VIZUALIZATIONS ###############
-# def get_hists(images, masks, colorspace):
-#     if colorspace == 'RGB':
-#         binsH = [i for i in range(0,256)]
-#     elif colorspace =='HSV':
-#         binsH = [i for i in range(0,180)]
-        
-#     bins = [i for i in range(0,256)]
-#     for i in range(len(images)):
-#         img = mpimg.imread(images[i])
-#         # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-        
-#         if colorspace =='HSV':
-#             img = cv.cvtColor(img, cv.COLOR_RGB2HSV)
-        
-#         # mask = np.round(mpimg.imread(masks[i])/255.0)
-#         mask = mpimg.imread(masks[i])
-#         ret,mask = cv.threshold(mask,200,255,cv.THRESH_BINARY)
-#         mask= np.where(mask  == 255.)
+# df.append([x for x in np.unique(y)])
+# df.append([x for x in np.unique(y)])
 
-#         imgR = img[:,:,0]
-#         hist_R,_ = np.histogram(imgR[mask], bins=binsH)
+df = pd.DataFrame(np.asarray(df).reshape((2,33*5)))
+df.to_excel('plots/' + colorspace + '_regression.xlsx', index=False, header=False)
+
+############ VIZUALIZATIONS ###############
+def get_hists(images, masks, colorspace):
+    if colorspace == 'RGB':
+        binsH = [i for i in range(0,256)]
+    elif colorspace =='HSV':
+        binsH = [i for i in range(0,180)]
         
-#         imgG = img[:,:,1]
-#         hist_G,_ = np.histogram(imgG[mask], bins=bins)
-#         # hist_G[0]=0
+    bins = [i for i in range(0,256)]
+    for i in range(len(images)):
+        img = mpimg.imread(images[i])
+        # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         
-#         imgB = img[:,:,2]
-#         hist_B,_ = np.histogram(imgB[mask], bins=bins)
+        if colorspace =='HSV':
+            img = cv.cvtColor(img, cv.COLOR_RGB2HSV)
         
-#         return img, hist_R/sum(hist_R), hist_G/sum(hist_G), hist_B/sum(hist_B)
+        # mask = np.round(mpimg.imread(masks[i])/255.0)
+        mask = mpimg.imread(masks[i])
+        ret,mask = cv.threshold(mask,200,255,cv.THRESH_BINARY)
+        mask= np.where(mask  == 255.)
+
+        imgR = img[:,:,0]
+        hist_R,_ = np.histogram(imgR[mask], bins=binsH)
+        
+        imgG = img[:,:,1]
+        hist_G,_ = np.histogram(imgG[mask], bins=bins)
+        # hist_G[0]=0
+        
+        imgB = img[:,:,2]
+        hist_B,_ = np.histogram(imgB[mask], bins=bins)
+        
+        return img, hist_R/sum(hist_R), hist_G/sum(hist_G), hist_B/sum(hist_B)
 
 
-# fig2, ax1 = plt.subplots(nrows=1, ncols=2, figsize=(3, 3)) 
-# ax1 = ax1.flat
+fig2, ax1 = plt.subplots(nrows=1, ncols=2, figsize=(3, 3)) 
+ax1 = ax1.flat
 
-# # a=0
 # a=0
+a=0
 
-# imgA, hist_R, hist_G, hist_B= get_hists(images[a:a+1], masks[a:a+1], colorspace=colorspace)
+imgA, hist_R, hist_G, hist_B= get_hists(images[a:a+1], masks[a:a+1], colorspace=colorspace)
+# img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+
+plt.subplot(2, 1, 1)
+print(images[a])
+# plt.title(colorspace, fontsize=14)
+# ax1[0].set_title(images[a].split('/')[-1])]
+# x_axis = np.argwhere(hist_R!=0)
+ra=plt.plot(np.argwhere(hist_R!=0),hist_R[hist_R!=0], color='red', label='hue')
+rg=plt.plot(np.argwhere(hist_G!=0),hist_G[hist_G!=0], color='green', label='saturation')
+rb=plt.plot(np.argwhere(hist_B!=0),hist_B[hist_B!=0], color='blue', label='value')
+
+b=7
+# # b= 6
+# # b= 11
+# b=22
+
+print(images[b])
+imgB, hist_R, hist_G, hist_B= get_hists(images[b:b+1], masks[b:b+1], colorspace=colorspace)
 # # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
 
-# plt.subplot(2, 1, 1)
-# print(images[a])
-# # plt.title(colorspace, fontsize=14)
-# # ax1[0].set_title(images[a].split('/')[-1])]
-# # x_axis = np.argwhere(hist_R!=0)
-# ra=plt.plot(np.argwhere(hist_R!=0),hist_R[hist_R!=0], color='red', label='hue')
-# rg=plt.plot(np.argwhere(hist_G!=0),hist_G[hist_G!=0], color='green', label='saturation')
-# rb=plt.plot(np.argwhere(hist_B!=0),hist_B[hist_B!=0], color='blue', label='value')
-
-# b=7
-# # # b= 6
-# # # b= 11
-# # b=22
-
-# print(images[b])
-# imgB, hist_R, hist_G, hist_B= get_hists(images[b:b+1], masks[b:b+1], colorspace=colorspace)
-# # # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-
-# # plt.plot(hist_R, color='red', linestyle='--')
-# # plt.plot(hist_G, color='green', linestyle='--')
-# # plt.plot(hist_B, color='blue', linestyle='--')
-# # plt.xlabel('intensity', fontsize=13)
-# # plt.ylabel('frequency (%)', fontsize=13)
+# plt.plot(hist_R, color='red', linestyle='--')
+# plt.plot(hist_G, color='green', linestyle='--')
+# plt.plot(hist_B, color='blue', linestyle='--')
+# plt.xlabel('intensity', fontsize=13)
+# plt.ylabel('frequency (%)', fontsize=13)
 
 
 
-# pa1 = Patch(edgecolor='red', facecolor='white')
-# pa2 = Patch(edgecolor='green', facecolor='white')
-# pa3 = Patch(edgecolor='blue', facecolor='white')
-# #
-# # pb1 = Patch(edgecolor='red', linestyle='--', facecolor='white')
-# # pb2 = Patch(edgecolor='green', linestyle='--', facecolor='white')
-# # pb3 = Patch(edgecolor='blue', linestyle='--', facecolor='white')
+pa1 = Patch(edgecolor='red', facecolor='white')
+pa2 = Patch(edgecolor='green', facecolor='white')
+pa3 = Patch(edgecolor='blue', facecolor='white')
+#
+# pb1 = Patch(edgecolor='red', linestyle='--', facecolor='white')
+# pb2 = Patch(edgecolor='green', linestyle='--', facecolor='white')
+# pb3 = Patch(edgecolor='blue', linestyle='--', facecolor='white')
 
-# # plt.legend(handles=[pa1, pb1, pa2, pb2, pa3, pb3],
-# #           labels=['', '', '', '', images[a].split('/')[-1], images[b].split('/')[-1]],
-# #           ncol=3, handletextpad=0.5, handlelength=1.0, columnspacing=-0.5,
-# #           fontsize=13)
+# plt.legend(handles=[pa1, pb1, pa2, pb2, pa3, pb3],
+#           labels=['', '', '', '', images[a].split('/')[-1], images[b].split('/')[-1]],
+#           ncol=3, handletextpad=0.5, handlelength=1.0, columnspacing=-0.5,
+#           fontsize=13)
 
-# plt.legend()
-# plt.tight_layout()
+plt.legend()
+plt.tight_layout()
 
-# # plt.subplot(2, 2, 3)
-# # plt.title(images[a].split('/')[-1])
+# plt.subplot(2, 2, 3)
+# plt.title(images[a].split('/')[-1])
+plt.xticks([]), plt.yticks([])
+
+# df = []
+# df.append(np.argwhere(hist_R!=0)[:,0])
+# df.append(hist_R[hist_R!=0])
+
+# df.append(np.argwhere(hist_G!=0)[:,0])
+# df.append(hist_G[hist_G!=0])
+
+# df.append(np.argwhere(hist_B!=0)[:,0])
+# df.append(hist_B[hist_B!=0])
+
+# df = pd.DataFrame(df)
+# df.to_excel('plots/HSV_distribution.xlsx', index=False, header=False)
+
+# if colorspace == 'HSV':
+#     imgA = cv.cvtColor(imgA, cv.COLOR_HSV2RGB)
+# plt.imshow(imgA)
+
+# plt.subplot(2, 2, 4)
+# plt.title(images[b].split('/')[-1])
 # plt.xticks([]), plt.yticks([])
-# # if colorspace == 'HSV':
-# #     imgA = cv.cvtColor(imgA, cv.COLOR_HSV2RGB)
-# # plt.imshow(imgA)
+# if colorspace == 'HSV':
+#     imgB = cv.cvtColor(imgB, cv.COLOR_HSV2RGB)
+# plt.imshow(imgB)
+# plt.savefig('plots/' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
 
-# # plt.subplot(2, 2, 4)
-# # plt.title(images[b].split('/')[-1])
-# # plt.xticks([]), plt.yticks([])
-# # if colorspace == 'HSV':
-# #     imgB = cv.cvtColor(imgB, cv.COLOR_HSV2RGB)
-# # plt.imshow(imgB)
-# # plt.savefig('plots/' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
-
-# # plt.savefig('plots/FOR_PAPER' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
+# plt.savefig('plots/FOR_PAPER' + images[a].split('/')[-1] + images[b].split('/')[-1] + colorspace+ ".jpg", dpi=350) 
 
 
 
